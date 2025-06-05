@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Processor</title>
+</head>
+<body>
+    <h1>PDF Analysis Tool</h1>
+    <form id="pdfForm" enctype="multipart/form-data">
+        <input type="file" id="pdfFile" name="file" accept=".pdf" required>
+        <button type="submit">Analyze PDF</button>
+    </form>
+    <div id="results" style="margin-top: 20px;"></div>
+
+    <script>
+        document.getElementById('pdfForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('pdfFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a PDF file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            document.getElementById('results').innerHTML = 'Processing PDF, please wait...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('results').innerHTML = `<p>Error: ${data.error}</p>`;
+                } else {
+                    document.getElementById('results').innerHTML = `
+                        <h3>Results for ${data.filename}</h3>
+                        <h4>Summary:</h4>
+                        <p>${data.summary}</p>
+                        <h4>Content Sample:</h4>
+                        <p><pre>${data.content_sample}</pre></p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

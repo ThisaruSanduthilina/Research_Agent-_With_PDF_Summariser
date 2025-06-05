@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+        }
+
+        #result {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Text Summarizer</h1>
+    <p>Enter text to summarize:</p>
+    <textarea id="textInput" placeholder="Enter text here..."></textarea>
+    <button onclick="summarizeText()">Summarize</button>
+
+    <div id="result"></div>
+
+    <script>
+        function summarizeText() {
+            const text = document.getElementById('textInput').value;
+            if (!text) {
+                alert('Please enter some text to summarize');
+                return;
+            }
+
+            fetch('http://localhost:5000/api/summarize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: text,
+                    max_sentences: 3
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.style.display = 'block';
+
+                    if (data.error) {
+                        resultDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                    } else {
+                        resultDiv.innerHTML = `
+                        <h3>Summary:</h3>
+                        <p>${data.summary}</p>
+                        <p><small>Original length: ${data.original_length} characters</small></p>
+                        <p><small>Summary length: ${data.summary_length} characters</small></p>
+                        <p><small>Processing time: ${data.processing_time} seconds</small></p>
+                    `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+                });
+        }
+    </script>
+</body>
+
+</html>
